@@ -73,8 +73,7 @@ def main(severity, device):
             client.domain_list.append(client_schedule[idx][t])
             client.adapt(x, y)
             w_locals.append(deepcopy(client.model.state_dict()))
-            selected_domain['use_count'] += 1
-        
+            selected_domain["use_count"] += 1
 
         bn_params_list = [client.extract_bn_weights_and_biases() for client in clients]
         similarity_mat = torch.zeros((len(bn_params_list), len(bn_params_list)))
@@ -91,25 +90,15 @@ def main(severity, device):
 
     acc = 0
     for client in clients:
-        client_acc = sum(client.correct_preds_before_adapt) / sum(client.total_preds)*100
+        client_acc = (
+            sum(client.correct_preds_before_adapt) / sum(client.total_preds) * 100
+        )
         acc += client_acc
         logger.info("%s accuracy: %0.3f", client.name, client_acc)
     logger.info("Global accuracy before adapt: %0.3f", acc / len(clients))
 
     acc = 0
-    for client in clients:
-        client_acc = sum(client.correct_preds_after_adapt) / sum(client.total_preds)*100
-        acc += client_acc
-        logger.info("%s accuracy: %0.3f", client.name, client_acc)
-    logger.info("Global accuracy after adapt: %0.3f", acc / len(clients))
 
-
-if __name__ == "__main__":
-    load_cfg_fom_args("CIFAR-10C Evaluation")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logger.info(cfg)
-    for severity in cfg.CORRUPTION.SEVERITY:
-        main(severity, device)
 
 if __name__ == "__main__":
     load_cfg_fom_args("CIFAR-10C Evaluation")

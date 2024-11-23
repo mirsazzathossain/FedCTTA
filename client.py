@@ -1,11 +1,11 @@
 from copy import deepcopy
 
+from losses import softmax_entropy
 import torch
 from sklearn.decomposition import PCA
 from torch import nn, optim
 
 from fed_utils import ema_update_model
-from losses import symmetric_cross_entropy
 
 
 class Client(object):
@@ -50,7 +50,6 @@ class Client(object):
         self.model_ema.to(self.device)
 
         _, outputs = self.model(self.x.to(self.device))
-        _, outputs_ema = self.model_ema(self.x.to(self.device))
 
         # self.local_features = feats.mean(0).detach().cpu()
 
@@ -99,8 +98,8 @@ class Client(object):
         else:
             self.model.to(self.device)
             _, outputs = self.model(self.x.to(self.device))
-            self.model.to('cpu')
-        
+            self.model.to("cpu")
+
         _, predicted = torch.max(outputs, 1)
         correct = (predicted == self.y.to(self.device)).sum().item()
         self.correct_preds_after_adapt.append(correct)
@@ -182,15 +181,10 @@ class Client(object):
             normalization layers in the model.
         """
         bn_params = {}
-<<<<<<< HEAD
-        for name, layer in self.model_ema.named_modules():
+        for name, layer in self.model.named_modules():
             if isinstance(
                 layer, (nn.BatchNorm1d, nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)
             ):
-=======
-        for name, layer in self.model.named_modules():
-            if isinstance(layer, (nn.BatchNorm1d, nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)):
->>>>>>> upstream/main
                 gamma = layer.weight.data.cpu()  # Scale (weight)
                 beta = layer.bias.data.cpu()  # Offset (bias)
                 weights = torch.cat((gamma, beta), dim=0)
