@@ -1,11 +1,11 @@
 from copy import deepcopy
 
-from losses import softmax_entropy
 import torch
 from sklearn.decomposition import PCA
 from torch import nn, optim
 
 from fed_utils import ema_update_model
+from losses import softmax_entropy
 
 
 class Client(object):

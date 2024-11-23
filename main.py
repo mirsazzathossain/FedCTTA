@@ -72,8 +72,9 @@ def main(severity, device):
             y = selected_domain["all_y"][cur_idx]
             client.domain_list.append(client_schedule[idx][t])
             client.adapt(x, y)
-            w_locals.append(deepcopy(client.model.state_dict()))
-            selected_domain["use_count"] += 1
+            w_locals.append(deepcopy(client.get_state_dict()))
+            selected_domain['use_count'] += 1
+        
 
         bn_params_list = [client.extract_bn_weights_and_biases() for client in clients]
         similarity_mat = torch.zeros((len(bn_params_list), len(bn_params_list)))
@@ -85,7 +86,7 @@ def main(severity, device):
         similarity_mat = F.softmax(similarity_mat, dim=-1)
         for i, _ in enumerate(clients):
             ww = FedAvg(w_locals, similarity_mat[i])
-            clients[i].model.load_state_dict(deepcopy(ww))
+            clients[i].set_state_dict(deepcopy(ww))
             clients[i].update_acc()
 
     acc = 0
@@ -96,8 +97,6 @@ def main(severity, device):
         acc += client_acc
         logger.info("%s accuracy: %0.3f", client.name, client_acc)
     logger.info("Global accuracy before adapt: %0.3f", acc / len(clients))
-
-    acc = 0
 
 
 if __name__ == "__main__":
